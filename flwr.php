@@ -280,7 +280,7 @@
 </html>
  
 <?php
-    echo $this->registerJsFile("../web/js/angular/angular.js");
-    echo $this->registerJsFile("../web/js/appflwr.js"); 
+    echo $this->registerJsFile("/yii2as/web/js/angular/angular.js");
+    echo $this->registerJsFile("/yii2as/web/js/appflwr.js"); 
 ?>
 
