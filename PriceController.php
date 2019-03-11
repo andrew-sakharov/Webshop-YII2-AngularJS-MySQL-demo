@@ -10,12 +10,11 @@ use app\models\PriceSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
-
 use app\repositories\Getglnprice;
 use app\repositories\Gettypes;
 use app\repositories\Putorders;
 use app\repositories\Getsorts;
-
+use app\repositories\Sqlclear;
 
 /**
  * PriceController implements the CRUD actions for Price model.
@@ -27,7 +26,7 @@ class PriceController extends Controller
         $this->enableCsrfValidation = false;
         return parent::beforeAction($action);
     }
-
+    
     public function behaviors()
     {
         return [
@@ -39,12 +38,12 @@ class PriceController extends Controller
             ],
         ];
     }
-
+    
     public function actionIndex()
     {
         $searchModel = new PriceSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
+        
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
@@ -52,8 +51,8 @@ class PriceController extends Controller
     }
     
     public function actionFlwr()
-    {       
-        return $this->render ('flwr');        
+    {
+        return $this->render ('flwr');
     }
     
     public function actionFlwrlist(){
@@ -62,17 +61,17 @@ class PriceController extends Controller
         $param ['offset'] = $inp_data->offset;
         $param ['mytypes'] = $inp_data->mytypes;
         $param ['mysorts'] = $inp_data->mysorts;
-        if ($param ['mytypes'] != 'all') {             
+        if ($param ['mytypes'] != 'all') {
             $param ['arraytypes'] = json_encode ($inp_data->arraytypes);
         }
-        if ($param ['mysorts'] != 'all') {             
+        if ($param ['mysorts'] != 'all') {
             $param ['arraysorts'] = json_encode ($inp_data->arraysorts);
         }
         $param ['sortitems'] = $inp_data->sortitems;
         $param ['sortrules'] = $inp_data->sortrules;
         $data = array();
         $queryPrice = new Getglnprice();
-        $data = $queryPrice ($param);        
+        $data = $queryPrice ($param);
         return json_encode($data);
     }
     
@@ -108,7 +107,7 @@ class PriceController extends Controller
         $putOrders = new Putorders();
         $data = $putOrders ($order, $buyer_name, $buyer_email);
         return json_encode($data);
-
+        
     }
     
     public function actionView($id)
@@ -117,47 +116,47 @@ class PriceController extends Controller
             'model' => $this->findModel($id),
         ]);
     }
-
+    
     public function actionCreate()
     {
         $model = new Price();
-
+        
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         }
-
+        
         return $this->render('create', [
             'model' => $model,
         ]);
     }
-
+    
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-
+        
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         }
-
+        
         return $this->render('update', [
             'model' => $model,
         ]);
     }
-
+    
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
+        
         return $this->redirect(['index']);
     }
-
+    
     protected function findModel($id)
     {
         if (($model = Price::findOne($id)) !== null) {
             return $model;
         }
-
+        
         throw new NotFoundHttpException('The requested page does not exist.');
-    }    
+    }
     
 }

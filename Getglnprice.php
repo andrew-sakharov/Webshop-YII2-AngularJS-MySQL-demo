@@ -2,30 +2,13 @@
 
 namespace app\repositories;
 use Yii;
+use app\repositories\Sqlclear;
 
 class Getglnprice
 {
     public function __invoke($param)
     {       
-        
-        /*
-        Здесь и далее используем Yii DAO. При использовании Yii DAO в основном используется чистый SQL и массивы PHP. 
-        Как результат, это самый эффективный способ доступа к базам данных. 
-        Единственный недостаток - так как синтаксис SQL может отличаться для разных баз данных, 
-            используя Yii DAO  нужно приложить дополнительные усилия, 
-            чтобы сделать приложение не зависящим от конкретной базы данных. 
-        Достоинства. Их гораздо больше:
-        - Гарантированная миграция на новое поколение Фреймворка без переписывания программ 
-          (показательно, что при переходе с Yii1 на Yii2 это практичеки единствееное место, де не потребовалось правит код!!!).
-        - Скорость выполнения запоросв. В данном примере в реальной БД юолее 30+ тыс. позиций на Торгах (таблица "price_list"), 
-                                                                             60+ тыс. позиций в спровочнике Сортов (таблица "sorts")
-                                                                              2+ тыс. позиций в спровочнике Плантаций (таблица "plantations")
-        Здесь необходимо по каждому обращению (новая страница, новое упорядочивание, новая выборка ...) выполнять соединение
-        таблицы фактов со справочниками, сортировка и фильтрация. 
-        Очевидно, что реализация на основе высокооуровневых средств фреймворка будет крайне неэффективна. 
-        Сервер БД сделает это много лучше!!!                                                                      
-        */        
-        
+                     
         $sql = "create or replace view price_view AS SELECT 
                 price_list.id AS id,
                 price_list.sorts_id AS sorts_id,
@@ -42,11 +25,10 @@ class Getglnprice
                 FROM  price_list
                 LEFT JOIN sorts ON (sorts.id = price_list.sorts_id)
                 LEFT JOIN plantations ON (plantations.id = price_list.plantations_id)
-                LEFT JOIN types ON (types.id = price_list.types_id)
-                WHERE price_list.flag = 'NL' ";
+                LEFT JOIN types ON (types.id = price_list.types_id)";
         Yii::$app->db->createCommand($sql)->execute();        
-        $sql = " from price_view where quantity > '0'";       
-       
+        $sql = " from price_view where quantity > '0'";   
+               
         if ($param ['mysorts'] != 'all' and $param ['mysorts'] != 'none') {
             $arraysorts_array = json_decode($param ['arraysorts'], true);
             $j= 0;
@@ -54,32 +36,34 @@ class Getglnprice
             $arraysorts_array_l = count($arraysorts_array);            
             while ($j < $arraysorts_array_l) {
                 if ($fl == 0 and $arraysorts_array [$j]['selected'] == 'YES') {
-                    $sql = $sql . " and (sorts_id = '" . $arraysorts_array [$j]['id'] . "'";
+                    $sql = $sql . " and (sorts_id = '" . Sqlclear::strip_data($arraysorts_array [$j]['id']) . "'";
                     $fl = 1;
+                    $j++;
+                    continue;
                 }
                 if ($fl == 1 and $arraysorts_array [$j]['selected'] == 'YES') {
-                    $sql = $sql . " or sorts_id = '" . $arraysorts_array [$j]['id'] . "'";
-                    $fl = 1;
+                    $sql = $sql . " or sorts_id = '" . Sqlclear::strip_data($arraysorts_array [$j]['id']) . "'";
                 }
                 $j++;
-            }
+            } 
             $sql = $sql . ") ";
         }
         
         if ($param ['mytypes'] != 'all' and $param ['mytypes'] != 'none') {
-            $arraytypes_array = json_decode($param ['arraytypes'], true);
+            $arraytypes_array = json_decode($param ['arraytypes'], true);           
             $j= 0;
             $fl = 0;         
             $arraytypes_array_l = count($arraytypes_array);            
-            while ($j < $arraytypes_array_l) {         
+            while ($j < $arraytypes_array_l) {                  
                 if ($fl == 0 and $arraytypes_array [$j]['selected'] == 'YES') {                    
-                    $sql = $sql . " and (types_id = '" . $arraytypes_array [$j]['id'] . "'";
+                    $sql = $sql . " and (types_id = '" . Sqlclear::strip_data($arraytypes_array [$j]['id']) . "'";
                     $fl = 1;
+                    $j++;
+                    continue;                   
                 }               
                 if ($fl == 1 and $arraytypes_array [$j]['selected'] == 'YES') {
-                    $sql = $sql . " or types_id = '" . $arraytypes_array [$j]['id'] . "'";
-                    $fl = 1;
-                }                
+                    $sql = $sql . " or types_id = '" . Sqlclear::strip_data($arraytypes_array [$j]['id']) . "'";
+                }                   
                 $j++;
             }           
             $sql = $sql . ") ";
